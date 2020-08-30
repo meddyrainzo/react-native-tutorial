@@ -1,11 +1,20 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useMemo, useEffect, useState} from 'react';
 import styled from 'styled-components/native';
 import Card from './Card';
-import {ScrollView, SafeAreaView} from 'react-native';
+import {
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  Animated,
+  Easing,
+  StatusBar,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {useSelector, useDispatch} from 'react-redux';
 
 import {NotificationIcon} from './Icons';
+import Avatar from './Avatar';
 import Logo from './Logo';
 import {businesses, courseLessons, courses} from '../fake/data';
 import {Business} from '../models/Business';
@@ -13,10 +22,57 @@ import {CourseLesson} from '../models/CourseLesson';
 import CourseCard from './CourseCard';
 import {Course} from '../models/Course';
 import Menu from './Menu';
+import {RootState} from '../reducers/reducers';
+import {openMenu} from '../actions/menuAction';
 
 Icon.loadFont();
 
 const Homescreen = () => {
+  const [scale] = useState(new Animated.Value(1));
+  const [opacity] = useState(new Animated.Value(1));
+
+  const dispatch = useDispatch();
+  const menuAction = useSelector((state: RootState) => state.menu.action);
+  const userName = useSelector((state: RootState) => state.user.name);
+
+  const toggleMenu = useMemo(() => {
+    if (menuAction === 'openMenu') {
+      Animated.parallel([
+        Animated.timing(scale, {
+          toValue: 0.9,
+          duration: 300,
+          easing: Easing.ease,
+          useNativeDriver: false,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.5,
+          useNativeDriver: false,
+        }),
+      ]).start();
+      StatusBar.setBarStyle('light-content', true);
+    }
+    if (menuAction === 'closeMenu') {
+      Animated.parallel([
+        Animated.timing(scale, {
+          toValue: 1,
+          duration: 250,
+          easing: Easing.ease,
+          useNativeDriver: false,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          useNativeDriver: false,
+        }),
+      ]).start();
+      StatusBar.setBarStyle('dark-content', true);
+    }
+  }, [menuAction, scale, opacity]);
+
+  useEffect(() => {
+    StatusBar.setBarStyle('dark-content', true);
+    toggleMenu;
+  }, [toggleMenu]);
+
   const createLogos = () =>
     businesses.map((business: Business, index: number) => (
       <Logo image={business.image} title={business.title} key={index} />
@@ -50,60 +106,74 @@ const Homescreen = () => {
     ));
 
   return (
-    <Container>
+    <RootView>
       <Menu />
-      <SafeAreaView>
-        <ScrollView style={{height: '100%'}}>
-          <TitleBar>
-            <Avatar source={require('./assets/avatar.jpg')} />
-            <Title> Welcome back </Title>
-            <Name>Meddy Rainzo</Name>
-            <NotificationIcon
-              size={24}
-              color="#4775f2"
-              style={{position: 'absolute', right: 36, top: 5}}
-            />
-          </TitleBar>
-          <ScrollView
-            showsHorizontalScrollIndicator={false}
-            horizontal={true}
-            style={{
-              padding: 20,
-              marginTop: 10,
-              paddingHorizontal: 12,
-            }}>
-            {createLogos()}
+      <AnimatedContainer style={{transform: [{scale}], opacity}}>
+        <SafeAreaView>
+          <ScrollView style={{height: '100%'}}>
+            <TitleBar>
+              <TouchableOpacity
+                onPress={() => dispatch(openMenu())}
+                style={{position: 'absolute'}}>
+                <Avatar />
+              </TouchableOpacity>
+              <Title> Welcome back </Title>
+              <Name>{userName}</Name>
+              <NotificationIcon
+                size={24}
+                color="#4775f2"
+                style={{position: 'absolute', right: 36, top: 5}}
+              />
+            </TitleBar>
+            <ScrollView
+              showsHorizontalScrollIndicator={false}
+              horizontal={true}
+              style={{
+                padding: 20,
+                marginTop: 10,
+                paddingHorizontal: 12,
+              }}>
+              {createLogos()}
+            </ScrollView>
+            <Subtitle>Continue learning</Subtitle>
+            <ScrollView
+              horizontal={true}
+              style={{paddingBottom: 30}}
+              showsHorizontalScrollIndicator={false}>
+              {createCourseLessons()}
+            </ScrollView>
+            <Subtitle>Popular courses</Subtitle>
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              style={{
+                padding: 20,
+                marginTop: 10,
+                paddingHorizontal: 12,
+              }}>
+              {createCourses()}
+            </ScrollView>
           </ScrollView>
-          <Subtitle>Continue learning</Subtitle>
-          <ScrollView
-            horizontal={true}
-            style={{paddingBottom: 30}}
-            showsHorizontalScrollIndicator={false}>
-            {createCourseLessons()}
-          </ScrollView>
-          <Subtitle>Popular courses</Subtitle>
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            style={{
-              padding: 20,
-              marginTop: 10,
-              paddingHorizontal: 12,
-            }}>
-            {createCourses()}
-          </ScrollView>
-        </ScrollView>
-      </SafeAreaView>
-    </Container>
+        </SafeAreaView>
+      </AnimatedContainer>
+    </RootView>
   );
 };
 
 export default Homescreen;
 
+const RootView = styled.View`
+  background: black;
+  flex: 1;
+`;
+
 const Container = styled.View`
   flex: 1;
   background-color: #f0f3f5;
+  border-radius: 10px;
 `;
+
+const AnimatedContainer = Animated.createAnimatedComponent(Container);
 
 const TitleBar = styled.View`
   width: 100%;
@@ -123,16 +193,6 @@ const Name = styled.Text`
   font-size: 20px;
   color: #3c4560;
   font-weight: bold;
-`;
-
-const Avatar = styled.Image`
-  width: 44px;
-  height: 44px;
-  background: black;
-  border-radius: 22px;
-  position: absolute;
-  top: 0;
-  left: 0;
 `;
 
 const Subtitle = styled.Text`

@@ -2,16 +2,9 @@ import React from 'react';
 import {createStore} from 'redux';
 import {Provider} from 'react-redux';
 import Homescreen from './components/Homescreen';
+import {rootReducer} from './reducers/reducers';
 
-const initialState = {
-  action: 'open-menu',
-};
-
-const reducer = (state = initialState) => {
-  return state;
-};
-
-const store = createStore(reducer);
+const store = createStore(rootReducer);
 
 const App = () => (
   <Provider store={store}>

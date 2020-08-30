@@ -1,30 +1,41 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect} from 'react';
-import {Animated, TouchableOpacity, Dimensions} from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
+import {Animated, TouchableOpacity, Dimensions, Text} from 'react-native';
 import styled from 'styled-components/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {useDispatch, useSelector} from 'react-redux';
+
 import {menus} from '../static_data/menu';
 import {AccountItem} from '../models/AccountItem';
 import MenuItem from './MenuItem';
+import {closeMenu} from '../actions/menuAction';
+import {RootState} from '../reducers/reducers';
 
 const screenHeight = Dimensions.get('window').height;
 
 const Menu = () => {
-  const top = new Animated.Value(screenHeight);
+  const [top] = useState(new Animated.Value(900));
+  const dispatch = useDispatch();
+  const menuAction = useSelector((state: RootState) => state.menu.action);
+
+  const toggleMenu = useMemo(() => {
+    if (menuAction === 'openMenu') {
+      Animated.spring(top, {
+        toValue: 84,
+        useNativeDriver: false,
+      }).start();
+    }
+    if (menuAction === 'closeMenu') {
+      Animated.spring(top, {
+        toValue: screenHeight,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [menuAction, top]);
 
   useEffect(() => {
-    Animated.spring(top, {
-      toValue: 0,
-      useNativeDriver: false,
-    }).start();
-  }, [top]);
-
-  const toggleMenu = () => {
-    Animated.spring(top, {
-      toValue: screenHeight,
-      useNativeDriver: false,
-    }).start();
-  };
+    toggleMenu;
+  }, [toggleMenu]);
 
   const createMenuItems = () =>
     menus.map((menu: AccountItem, index: number) => (
@@ -44,7 +55,7 @@ const Menu = () => {
         <SubTitle>Greatest ever</SubTitle>
       </Cover>
       <TouchableOpacity
-        onPress={toggleMenu}
+        onPress={() => dispatch(closeMenu())}
         style={{
           position: 'absolute',
           top: 120,
@@ -57,6 +68,7 @@ const Menu = () => {
         </CloseView>
       </TouchableOpacity>
       <Content>{createMenuItems()}</Content>
+      <Text>{menuAction}</Text>
     </AnimatedContainer>
   );
 };
@@ -66,6 +78,8 @@ export default Menu;
 const Container = styled.View`
   position: absolute;
   background: white;
+  border-radius: 10px;
+  overflow: hidden;
   width: 100%;
   height: 100%;
   z-index: 100;

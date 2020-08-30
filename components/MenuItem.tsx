@@ -28,14 +28,14 @@ const Container = styled.View`
 `;
 
 const IconView = styled.View`
-  width: 32;
-  height: 32;
+  width: 32px;
+  height: 32px;
   justify-content: center;
   align-items: center;
 `;
 
 const Content = styled.View`
-  padding-left: 20;
+  padding-left: 20px;
 `;
 
 const Title = styled.Text`
