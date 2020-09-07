@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useMemo, useEffect, useState} from 'react';
+import React, {useMemo, useEffect, useState, FC} from 'react';
 import styled from 'styled-components/native';
-import Card from './Card';
+import Card from '../components/Card';
 import {
   ScrollView,
   SafeAreaView,
@@ -12,22 +12,26 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useSelector, useDispatch} from 'react-redux';
+import {StackScreenProps} from '@react-navigation/stack';
 
-import {NotificationIcon} from './Icons';
-import Avatar from './Avatar';
-import Logo from './Logo';
+import {NotificationIcon} from '../components/Icons';
+import Avatar from '../components/Avatar';
+import Logo from '../components/Logo';
 import {businesses, courseLessons, courses} from '../fake/data';
 import {Business} from '../models/Business';
 import {CourseLesson} from '../models/CourseLesson';
-import CourseCard from './CourseCard';
+import CourseCard from '../components/CourseCard';
 import {Course} from '../models/Course';
-import Menu from './Menu';
+import Menu from '../components/Menu';
 import {RootState} from '../reducers/reducers';
 import {openMenu} from '../actions/menuAction';
+import {RouteStackParameters} from '../Routes/NavigatorTypes';
 
 Icon.loadFont();
 
-const Homescreen = () => {
+type HomescreenProps = StackScreenProps<RouteStackParameters, 'Home'>;
+
+const Homescreen: FC<HomescreenProps> = ({navigation}: HomescreenProps) => {
   const [scale] = useState(new Animated.Value(1));
   const [opacity] = useState(new Animated.Value(1));
 
@@ -80,15 +84,19 @@ const Homescreen = () => {
 
   const createCourseLessons = () =>
     courseLessons.map((lesson: CourseLesson, index: number) => (
-      <Card
+      <TouchableOpacity
         key={index}
-        containerStyle={{marginLeft: 20}}
-        title={lesson.title}
-        image={lesson.image}
-        caption={lesson.caption}
-        logo={lesson.logo}
-        subtitle={lesson.subtitle}
-      />
+        onPress={() => navigation.push('Section', {section: lesson})}>
+        <Card
+          key={index}
+          containerStyle={{marginLeft: 20}}
+          title={lesson.title}
+          image={lesson.image}
+          caption={lesson.caption}
+          logo={lesson.logo}
+          subtitle={lesson.subtitle}
+        />
+      </TouchableOpacity>
     ));
 
   const createCourses = () =>
@@ -170,7 +178,8 @@ const RootView = styled.View`
 const Container = styled.View`
   flex: 1;
   background-color: #f0f3f5;
-  border-radius: 10px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
 `;
 
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
