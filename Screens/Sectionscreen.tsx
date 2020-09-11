@@ -1,8 +1,10 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {FC, useEffect} from 'react';
 import styled from 'styled-components/native';
-import {TouchableOpacity, StatusBar} from 'react-native';
+import {TouchableOpacity, StatusBar, Linking, ScrollView} from 'react-native';
+// import {WebView} from 'react-native-webview';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Markdown from 'react-native-showdown';
 import {StackScreenProps} from '@react-navigation/stack';
 
 import {RouteStackParameters} from '../Routes/NavigatorTypes';
@@ -23,27 +25,53 @@ const Sectionscreen: FC<SectionscreenProps> = ({
     };
   }, []);
 
+  let webview: any = null;
+
+  const handleWebviewNavigation = (event: any) => {
+    if (event.url !== 'about:blank') {
+      webview.stopLoading();
+      Linking.openURL(event.url);
+    }
+  };
+
   const section = route.params.section;
   return (
-    <Container>
-      <StatusBar hidden={true} />
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={{position: 'absolute', top: 40, right: 20}}>
-        <CloseView>
-          <Icon name="ios-close" size={32} color="#4775f2" />
-        </CloseView>
-      </TouchableOpacity>
-      <Cover>
-        <Image source={section.image} />
-        <Wrapper>
-          <Logo source={section.logo} />
-          <Subtitle>{section.subtitle}</Subtitle>
-        </Wrapper>
-        <Title>{section.title}</Title>
-        <Caption>{section.caption}</Caption>
-      </Cover>
-    </Container>
+    <ScrollView>
+      <Container>
+        <StatusBar hidden={true} />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{position: 'absolute', top: 40, right: 20}}>
+          <CloseView>
+            <Icon name="ios-close" size={32} color="#4775f2" />
+          </CloseView>
+        </TouchableOpacity>
+        <Cover>
+          <Image source={section.image} />
+          <Wrapper>
+            <Logo source={section.logo} />
+            <Subtitle>{section.subtitle}</Subtitle>
+          </Wrapper>
+          <Title>{section.title}</Title>
+          <Caption>{section.caption}</Caption>
+        </Cover>
+        <Content>
+          {/* <WebView
+          ref={(ref) => (webview = ref)}
+          source={{html: section.content + htmlStyles}}
+          scalesPageToFit={false}
+          scrollEnabled={false}
+          onNavigationStateChange={handleWebviewNavigation}
+        /> */}
+          <Markdown
+            markdown={section.content}
+            pureCSS={htmlStyles}
+            scalesPageToFit={false}
+            scrollEnabled={false}
+          />
+        </Content>
+      </Container>
+    </ScrollView>
   );
 };
 
@@ -113,4 +141,53 @@ const Subtitle = styled.Text`
   color: rgba(255, 255, 255, 0.8);
   margin-left: 5px;
   text-transform: uppercase;
+`;
+
+const Content = styled.View`
+  height: 1000px;
+  padding: 12px;
+`;
+
+const htmlStyles = `
+<style>
+  * {
+    font-family: -apple-system; 
+        margin: 0;
+        padding: 0;
+    font-size: 17px; 
+    font-weight: normal; 
+    color: #3c4560;
+    line-height: 24px;
+  }
+
+  h2 {
+    font-size: 20px;
+    text-transform: uppercase;
+    color: #b8bece;
+    font-weight: 600;
+    margin-top: 50px;
+  }
+
+    p {
+      margin-top: 20px;
+  }
+
+  a {
+    color: #4775f2;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  strong {
+    font-weight: 700;
+  }
+
+
+  img {
+    width: 100%;
+    margin-top: 20px;
+    border-radius: 10px;
+  }
+
+</style>
 `;

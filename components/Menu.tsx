@@ -14,21 +14,22 @@ import {RootState} from '../reducers/reducers';
 const screenHeight = Dimensions.get('window').height;
 
 const Menu = () => {
-  const [top] = useState(new Animated.Value(900));
+  const [top] = useState(new Animated.Value(screenHeight));
   const dispatch = useDispatch();
   const menuAction = useSelector((state: RootState) => state.menu.action);
 
   const toggleMenu = useMemo(() => {
+    // Use translation instead of top (ie translateY)
     if (menuAction === 'openMenu') {
       Animated.spring(top, {
         toValue: 84,
-        useNativeDriver: false,
+        useNativeDriver: true,
       }).start();
     }
     if (menuAction === 'closeMenu') {
       Animated.spring(top, {
         toValue: screenHeight,
-        useNativeDriver: false,
+        useNativeDriver: true,
       }).start();
     }
   }, [menuAction, top]);
@@ -48,7 +49,7 @@ const Menu = () => {
     ));
 
   return (
-    <AnimatedContainer style={{top: top}}>
+    <AnimatedContainer style={{transform: [{translateY: top}]}}>
       <Cover>
         <CoverImage source={require('../assets/background2.jpg')} />
         <Title>Meddy Rainzo</Title>

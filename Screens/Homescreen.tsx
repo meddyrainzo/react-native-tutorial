@@ -13,7 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useSelector, useDispatch} from 'react-redux';
 import {StackScreenProps} from '@react-navigation/stack';
-
+import {Query} from 'react-apollo';
 import {NotificationIcon} from '../components/Icons';
 import Avatar from '../components/Avatar';
 import Logo from '../components/Logo';
@@ -25,6 +25,7 @@ import {Course} from '../models/Course';
 import Menu from '../components/Menu';
 import {RootState} from '../reducers/reducers';
 import {openMenu} from '../actions/menuAction';
+import {CardsQuery} from '../graphql/cards';
 import {RouteStackParameters} from '../Routes/NavigatorTypes';
 
 Icon.loadFont();
@@ -46,11 +47,11 @@ const Homescreen: FC<HomescreenProps> = ({navigation}: HomescreenProps) => {
           toValue: 0.9,
           duration: 300,
           easing: Easing.ease,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
         Animated.timing(opacity, {
           toValue: 0.5,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
       ]).start();
       StatusBar.setBarStyle('light-content', true);
@@ -61,11 +62,11 @@ const Homescreen: FC<HomescreenProps> = ({navigation}: HomescreenProps) => {
           toValue: 1,
           duration: 250,
           easing: Easing.ease,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
         Animated.timing(opacity, {
           toValue: 1,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
       ]).start();
       StatusBar.setBarStyle('dark-content', true);
@@ -77,28 +78,48 @@ const Homescreen: FC<HomescreenProps> = ({navigation}: HomescreenProps) => {
     toggleMenu;
   }, [toggleMenu]);
 
+  const graphqlQuery = () => (
+    <Query query={CardsQuery}>
+      {({loading, error, data}) => {
+        if (loading) {
+          return <Message>Loading...</Message>;
+        }
+        if (error) {
+          return <Message>Error ...</Message>;
+        }
+        return (
+          <CardsContainer>
+            {data.cardsCollection.items.map(
+              (card: CourseLesson, index: number) =>
+                createCourseLessons(card, index),
+            )}
+          </CardsContainer>
+        );
+      }}
+    </Query>
+  );
+
   const createLogos = () =>
     businesses.map((business: Business, index: number) => (
       <Logo image={business.image} title={business.title} key={index} />
     ));
 
-  const createCourseLessons = () =>
-    courseLessons.map((lesson: CourseLesson, index: number) => (
-      <TouchableOpacity
+  const createCourseLessons = (lesson: CourseLesson, index: number) => (
+    <TouchableOpacity
+      key={index}
+      onPress={() => navigation.push('Section', {section: lesson})}>
+      <Card
         key={index}
-        onPress={() => navigation.push('Section', {section: lesson})}>
-        <Card
-          key={index}
-          containerStyle={{marginLeft: 20}}
-          title={lesson.title}
-          image={lesson.image}
-          caption={lesson.caption}
-          logo={lesson.logo}
-          subtitle={lesson.subtitle}
-        />
-      </TouchableOpacity>
-    ));
-
+        containerStyle={{marginLeft: 20}}
+        title={lesson.title}
+        image={lesson.image}
+        caption={lesson.caption}
+        logo={lesson.logo}
+        subtitle={lesson.subtitle}
+        content={lesson.content}
+      />
+    </TouchableOpacity>
+  );
   const createCourses = () =>
     courses.map((course: Course, index) => (
       <CourseCard
@@ -148,7 +169,8 @@ const Homescreen: FC<HomescreenProps> = ({navigation}: HomescreenProps) => {
               horizontal={true}
               style={{paddingBottom: 30}}
               showsHorizontalScrollIndicator={false}>
-              {createCourseLessons()}
+              {graphqlQuery()}
+              {/* {createCourseLessons()} */}
             </ScrollView>
             <Subtitle>Popular courses</Subtitle>
             <ScrollView
@@ -211,4 +233,15 @@ const Subtitle = styled.Text`
   margin-top: 10px;
   margin-left: 20px;
   text-transform: uppercase;
+`;
+
+const Message = styled.Text`
+  margin: 20px;
+  color: #b8bece;
+  font-size: 15px;
+  font-weight: 500;
+`;
+
+const CardsContainer = styled.View`
+  flex-direction: row;
 `;

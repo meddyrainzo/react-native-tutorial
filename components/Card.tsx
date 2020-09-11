@@ -9,6 +9,7 @@ type CardProps = {
   title: string;
   caption: string;
   subtitle: string;
+  content: any;
   containerStyle: StyleProp<ViewStyle>;
 };
 

@@ -4,4 +4,5 @@ export interface CourseLesson {
   subtitle: string;
   caption: string;
   logo: any;
+  content: any;
 }
