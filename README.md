@@ -1,3 +1,4 @@
 # react-native-tutorial
-My journey learning react native from design-tut
+
+Writing the design-code react-native app in Typescript and trying to use best practices as much as possible
 
